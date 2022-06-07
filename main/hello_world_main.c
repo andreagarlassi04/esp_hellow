@@ -22,7 +22,7 @@ static const char *TAG = "example";
 /* Use project configuration menu (idf.py menuconfig) to choose the GPIO to blink,
    or you can edit the following line and set a number here.
 */
-#define BLINK_GPIOB CONFIG_BLINK_GPIO
+#define BLINK_GPIO4 CONFIG_BLINK_GPIO
 
 static uint8_t s_ledB_state = 0;
 
@@ -44,7 +44,7 @@ static void configure_ledB(void)
 
 #endif
 
-#define BLINK_GPIOR CONFIG_BLINK_GPIO
+#define BLINK_GPIO0 CONFIG_BLINK_GPIO
 
 static uint8_t s_ledR_state = 0;
 
@@ -66,7 +66,7 @@ static void configure_ledR(void)
 
 #endif
 
-#define BLINK_GPIOG CONFIG_BLINK_GPIO
+#define BLINK_GPIO2 CONFIG_BLINK_GPIO
 
 static uint8_t s_ledG_state = 0;
 
