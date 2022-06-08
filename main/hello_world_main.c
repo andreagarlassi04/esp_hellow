@@ -49,7 +49,7 @@ static void blink_ledB(void)
 
 static void configure_ledB(void)
 {
-    ESP_LOGI(TAG, "Example configured to blink GPIO LED!");
+   // ESP_LOGI(TAG, "Example configured to blink GPIO LED!");
     gpio_reset_pin(4);
     /* Set the GPIO as a push/pull output */
     gpio_set_direction(4, GPIO_MODE_OUTPUT);
@@ -71,7 +71,7 @@ static void blink_ledR(void)
 
 static void configure_ledR(void)
 {
-    ESP_LOGI(TAG, "Example configured to blink GPIO LED!");
+    //ESP_LOGI(TAG, "Example configured to blink GPIO LED!");
     gpio_reset_pin(0);
     /* Set the GPIO as a push/pull output */
     gpio_set_direction(0, GPIO_MODE_OUTPUT);
@@ -93,7 +93,7 @@ static void blink_ledG(void)
 
 static void configure_ledG(void)
 {
-    ESP_LOGI(TAG, "Example configured to blink GPIO LED!");
+   // ESP_LOGI(TAG, "Example configured to blink GPIO LED!");
     gpio_reset_pin(2);
     /* Set the GPIO as a push/pull output */
     gpio_set_direction(2, GPIO_MODE_OUTPUT);
@@ -346,64 +346,79 @@ static const httpd_uri_t echo = {
 //-----------------------------------GET-----------------------------------------------
 
 
-/*static esp_err_t ledR_ReadState_get_handler(httpd_req_t *req)
+static esp_err_t ledRRead_get_handler(httpd_req_t *req)
 {   
-    
-    httpd_resp_send_chunk(req, s_ledR_state, 0);
-
+     if(s_ledR_state==false){
+        ESP_LOGI(TAG, "=========== LED ROSSO ACCESO ==========");
+    }
+    else if(s_ledR_state==true){
+        ESP_LOGI(TAG, "=========== LED ROSSO SPENTO ==========");
+    }
     return ESP_OK;
 }
 
-httpd_uri_t ledR_ReadState = {
-    .uri      = "/ledR_ReadState",
+static const httpd_uri_t ledRRead = {
+    .uri      = "/ledRRead",
     .method   = HTTP_GET,
-    .handler  = ledR_ReadState_get_handler,
+    .handler  = ledRRead_get_handler,
     .user_ctx = NULL
 };
 
-static esp_err_t ledG_ReadState_get_handler(httpd_req_t *req)
+static esp_err_t ledGRead_get_handler(httpd_req_t *req)
 {   
-    
-    httpd_resp_send_chunk(req, s_ledG_state, 0);
-    
+     if(s_ledG_state==false){
+        ESP_LOGI(TAG, "=========== LED ROSSO ACCESO ==========");
+    }
+    else if(s_ledG_state==true){
+        ESP_LOGI(TAG, "=========== LED ROSSO SPENTO ==========");
+    }
     return ESP_OK;
 }
 
-httpd_uri_t ledG_ReadState = {
-    .uri      = "/ledG_ReadState",
+static const httpd_uri_t ledGRead = {
+    .uri      = "/ledGRead",
     .method   = HTTP_GET,
-    .handler  = ledG_ReadState_get_handler,
+    .handler  = ledGRead_get_handler,
     .user_ctx = NULL
 };
 
-static esp_err_t ledB_ReadState_get_handler(httpd_req_t *req)
+static esp_err_t ledBRead_get_handler(httpd_req_t *req)
 {   
-    
-    httpd_resp_send_chunk(req, s_ledB_state, 0);
-    
+     if(s_ledB_state==false){
+        ESP_LOGI(TAG, "=========== LED ROSSO ACCESO ==========");
+    }
+    else if(s_ledB_state==true){
+        ESP_LOGI(TAG, "=========== LED ROSSO SPENTO ==========");
+    }
     return ESP_OK;
 }
 
-httpd_uri_t ledB_ReadState = {
-    .uri      = "/ledB_ReadState",
+static const httpd_uri_t ledBRead = {
+    .uri      = "/ledBRead",
     .method   = HTTP_GET,
-    .handler  = ledB_ReadState_get_handler,
+    .handler  = ledBRead_get_handler,
     .user_ctx = NULL
-};*/
+};
 
 //----------------------------------POST-----------------------------------------------
 
 static esp_err_t ledR_post_handler(httpd_req_t *req)
 {   
     configure_ledR();
-   // blink_ledR();
+    blink_ledR();
     s_ledR_state=!s_ledR_state;
+    if(s_ledR_state==false){
+        ESP_LOGI(TAG, "=========== LED ROSSO ACCESO ==========");
+    }
+    else if(s_ledR_state==true){
+        ESP_LOGI(TAG, "=========== LED ROSSO SPENTO ==========");
+    }
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
 
-httpd_uri_t ledRControl = {
-    .uri      = "/ledRControl",
+static const httpd_uri_t ledRToggle = {
+    .uri      = "/ledRToggle",
     .method   = HTTP_POST,
     .handler  = ledR_post_handler,
     .user_ctx = NULL
@@ -412,14 +427,20 @@ httpd_uri_t ledRControl = {
 static esp_err_t ledG_post_handler(httpd_req_t *req)
 {
     configure_ledG();
-   // blink_ledG();
+    blink_ledG();
     s_ledG_state=!s_ledG_state;
+    if(s_ledG_state==false){
+        ESP_LOGI(TAG, "=========== LED VERDE ACCESO ==========");
+    }
+    else if(s_ledG_state==true){
+        ESP_LOGI(TAG, "=========== LED VERDE SPENTO ==========");
+    }
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
 
-httpd_uri_t ledGControl = {
-    .uri      = "/ledGControl",
+static const httpd_uri_t ledGToggle = {
+    .uri      = "/ledGToggle",
     .method   = HTTP_POST,
     .handler  = ledG_post_handler,
     .user_ctx = NULL
@@ -428,33 +449,52 @@ httpd_uri_t ledGControl = {
 static esp_err_t ledB_post_handler(httpd_req_t *req)
 {
     configure_ledB();
-   // blink_ledB();
+    blink_ledB();
     s_ledB_state=!s_ledB_state;
+    if(s_ledB_state==false){
+        ESP_LOGI(TAG, "=========== LED BLU ACCESO ==========");
+    }
+    else if(s_ledB_state==true){
+        ESP_LOGI(TAG, "=========== LED BLU SPENTO ==========");
+    }
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
 
-httpd_uri_t ledBControl = {
-    .uri      = "/ledBControl",
+static const httpd_uri_t ledBToggle = {
+    .uri      = "/ledBToggle",
     .method   = HTTP_POST,
     .handler  = ledB_post_handler,
     .user_ctx = NULL
 };
 
-/*static esp_err_t text_post_handler(httpd_req_t *req)
+static esp_err_t text_post_handler(httpd_req_t *req)
 {
-    char text[100];
-    asscanf(text);
-    httpd_resp_send_chunk(req, text, 0);
+    char testo[100];
+    int ret=0, remaining = req->content_len;
+
+    while (remaining > 0) {
+        if ((ret = httpd_req_recv(req, testo,  MIN(remaining, sizeof(testo)))) <= 0) {
+            if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
+                continue;
+            }
+            return ESP_FAIL;
+        }
+        httpd_resp_send_chunk(req, testo, ret);
+        remaining -= ret;
+        ESP_LOGI(TAG, "TESTO RICEVUTO:");
+        ESP_LOGI(TAG, "%.*s", ret, testo);
+    }
+    httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
 
-httpd_uri_t text = {
+static const httpd_uri_t text = {
     .uri      = "/text",
     .method   = HTTP_POST,
     .handler  = text_post_handler,
     .user_ctx = NULL
-};*/
+};
 
 
 
@@ -512,6 +552,13 @@ static esp_err_t ctrl_put_handler(httpd_req_t *req)
         ESP_LOGI(TAG, "Registering /hello and /echo URIs");
         httpd_register_uri_handler(req->handle, &hello);
         httpd_register_uri_handler(req->handle, &echo);
+        httpd_register_uri_handler(req->handle, &ledRToggle);
+        httpd_register_uri_handler(req->handle, &ledGToggle);
+        httpd_register_uri_handler(req->handle, &ledBToggle);
+        httpd_register_uri_handler(req->handle, &text);
+        httpd_register_uri_handler(req->handle, &ledRRead);
+        httpd_register_uri_handler(req->handle, &ledGRead);
+        httpd_register_uri_handler(req->handle, &ledBRead);
         /* Unregister custom error handler */
         httpd_register_err_handler(req->handle, HTTPD_404_NOT_FOUND, NULL);
     }
@@ -542,6 +589,13 @@ static httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(server, &hello);
         httpd_register_uri_handler(server, &echo);
         httpd_register_uri_handler(server, &ctrl);
+        httpd_register_uri_handler(server, &ledRToggle);
+        httpd_register_uri_handler(server, &ledGToggle);
+        httpd_register_uri_handler(server, &ledBToggle);
+        httpd_register_uri_handler(server, &text);
+        httpd_register_uri_handler(server, &ledRRead);
+        httpd_register_uri_handler(server, &ledGRead);
+        httpd_register_uri_handler(server, &ledBRead);
         #if CONFIG_EXAMPLE_BASIC_AUTH
         httpd_register_basic_auth(server);
         #endif
@@ -585,10 +639,10 @@ static void connect_handler(void* arg, esp_event_base_t event_base,
 void app_main(void)
 {
     static httpd_handle_t server = NULL;
-
-    configure_ledB();
-    configure_ledR();
-    configure_ledG();
+    
+    blink_ledR();
+    blink_ledG();
+    blink_ledB();
 
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(esp_netif_init());
