@@ -346,57 +346,36 @@ static const httpd_uri_t echo = {
 //-----------------------------------GET-----------------------------------------------
 
 
-static esp_err_t ledRRead_get_handler(httpd_req_t *req)
+static esp_err_t ledRead_get_handler(httpd_req_t *req)
 {   
-     if(s_ledR_state==false){
-        ESP_LOGI(TAG, "=========== LED ROSSO ACCESO ==========");
+    ESP_LOGI(TAG, " [STATO DEI LED RGB]");
+    if(s_ledR_state==false){
+        ESP_LOGI(TAG, "|     RED : OFF     |");
     }
     else if(s_ledR_state==true){
-        ESP_LOGI(TAG, "=========== LED ROSSO SPENTO ==========");
+        ESP_LOGI(TAG, "|     RED : ON      |");
     }
-    return ESP_OK;
-}
-
-static const httpd_uri_t ledRRead = {
-    .uri      = "/ledRRead",
-    .method   = HTTP_GET,
-    .handler  = ledRRead_get_handler,
-    .user_ctx = NULL
-};
-
-static esp_err_t ledGRead_get_handler(httpd_req_t *req)
-{   
-     if(s_ledG_state==false){
-        ESP_LOGI(TAG, "=========== LED ROSSO ACCESO ==========");
+    if(s_ledG_state==false){
+        ESP_LOGI(TAG, "|    GREEN : OFF    |");
     }
     else if(s_ledG_state==true){
-        ESP_LOGI(TAG, "=========== LED ROSSO SPENTO ==========");
+        ESP_LOGI(TAG, "|    GREEN : ON     |");
     }
-    return ESP_OK;
-}
-
-static const httpd_uri_t ledGRead = {
-    .uri      = "/ledGRead",
-    .method   = HTTP_GET,
-    .handler  = ledGRead_get_handler,
-    .user_ctx = NULL
-};
-
-static esp_err_t ledBRead_get_handler(httpd_req_t *req)
-{   
-     if(s_ledB_state==false){
-        ESP_LOGI(TAG, "=========== LED ROSSO ACCESO ==========");
+    if(s_ledB_state==false){
+        ESP_LOGI(TAG, "|    BLUE : OFF     |");
     }
     else if(s_ledB_state==true){
-        ESP_LOGI(TAG, "=========== LED ROSSO SPENTO ==========");
+        ESP_LOGI(TAG, "|    BLUE : ON      |");
     }
+    ESP_LOGI(TAG, "---------------------");
+    httpd_resp_send(req, NULL, 0);
     return ESP_OK;
 }
 
-static const httpd_uri_t ledBRead = {
-    .uri      = "/ledBRead",
+static const httpd_uri_t ledRead = {
+    .uri      = "/ledRead",
     .method   = HTTP_GET,
-    .handler  = ledBRead_get_handler,
+    .handler  = ledRead_get_handler,
     .user_ctx = NULL
 };
 
@@ -404,13 +383,13 @@ static const httpd_uri_t ledBRead = {
 
 static esp_err_t ledR_post_handler(httpd_req_t *req)
 {   
-    configure_ledR();
-    blink_ledR();
     s_ledR_state=!s_ledR_state;
-    if(s_ledR_state==false){
+    blink_ledR();
+    configure_ledR();
+    if(s_ledR_state==true){
         ESP_LOGI(TAG, "=========== LED ROSSO ACCESO ==========");
     }
-    else if(s_ledR_state==true){
+    else if(s_ledR_state==false){
         ESP_LOGI(TAG, "=========== LED ROSSO SPENTO ==========");
     }
     httpd_resp_send_chunk(req, NULL, 0);
@@ -426,13 +405,13 @@ static const httpd_uri_t ledRToggle = {
 
 static esp_err_t ledG_post_handler(httpd_req_t *req)
 {
-    configure_ledG();
-    blink_ledG();
     s_ledG_state=!s_ledG_state;
-    if(s_ledG_state==false){
+    blink_ledG();
+    configure_ledG();
+    if(s_ledG_state==true){
         ESP_LOGI(TAG, "=========== LED VERDE ACCESO ==========");
     }
-    else if(s_ledG_state==true){
+    else if(s_ledG_state==false){
         ESP_LOGI(TAG, "=========== LED VERDE SPENTO ==========");
     }
     httpd_resp_send_chunk(req, NULL, 0);
@@ -448,13 +427,13 @@ static const httpd_uri_t ledGToggle = {
 
 static esp_err_t ledB_post_handler(httpd_req_t *req)
 {
-    configure_ledB();
-    blink_ledB();
     s_ledB_state=!s_ledB_state;
-    if(s_ledB_state==false){
+    blink_ledB();
+    configure_ledB();
+    if(s_ledB_state==true){
         ESP_LOGI(TAG, "=========== LED BLU ACCESO ==========");
     }
-    else if(s_ledB_state==true){
+    else if(s_ledB_state==false){
         ESP_LOGI(TAG, "=========== LED BLU SPENTO ==========");
     }
     httpd_resp_send_chunk(req, NULL, 0);
@@ -495,7 +474,6 @@ static const httpd_uri_t text = {
     .handler  = text_post_handler,
     .user_ctx = NULL
 };
-
 
 
 /* This handler allows the custom error handling functionality to be
@@ -556,9 +534,7 @@ static esp_err_t ctrl_put_handler(httpd_req_t *req)
         httpd_register_uri_handler(req->handle, &ledGToggle);
         httpd_register_uri_handler(req->handle, &ledBToggle);
         httpd_register_uri_handler(req->handle, &text);
-        httpd_register_uri_handler(req->handle, &ledRRead);
-        httpd_register_uri_handler(req->handle, &ledGRead);
-        httpd_register_uri_handler(req->handle, &ledBRead);
+        httpd_register_uri_handler(req->handle, &ledRead);
         /* Unregister custom error handler */
         httpd_register_err_handler(req->handle, HTTPD_404_NOT_FOUND, NULL);
     }
@@ -593,9 +569,7 @@ static httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(server, &ledGToggle);
         httpd_register_uri_handler(server, &ledBToggle);
         httpd_register_uri_handler(server, &text);
-        httpd_register_uri_handler(server, &ledRRead);
-        httpd_register_uri_handler(server, &ledGRead);
-        httpd_register_uri_handler(server, &ledBRead);
+        httpd_register_uri_handler(server, &ledRead);
         #if CONFIG_EXAMPLE_BASIC_AUTH
         httpd_register_basic_auth(server);
         #endif
@@ -640,9 +614,15 @@ void app_main(void)
 {
     static httpd_handle_t server = NULL;
     
+    s_ledR_state=false;
     blink_ledR();
+    configure_ledR();
+    s_ledG_state=false;
     blink_ledG();
+    configure_ledG();
+    s_ledB_state=false;
     blink_ledB();
+    configure_ledB();
 
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(esp_netif_init());
