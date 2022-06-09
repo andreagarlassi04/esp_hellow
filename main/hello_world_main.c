@@ -461,8 +461,7 @@ static esp_err_t text_post_handler(httpd_req_t *req)
         }
         httpd_resp_send_chunk(req, testo, ret);
         remaining -= ret;
-        ESP_LOGI(TAG, "TESTO RICEVUTO:");
-        ESP_LOGI(TAG, "%.*s", ret, testo);
+        ESP_LOGI("TESTO RICEVUTO", "%.*s", ret, testo);
     }
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;

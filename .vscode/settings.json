@@ -31,6 +31,12 @@
         "regex": "c",
         "tuple": "c",
         "type_traits": "c",
-        "utility": "c"
+        "utility": "c",
+        "fstream": "c",
+        "new": "c",
+        "sstream": "c",
+        "typeinfo": "c",
+        "*.ipp": "c",
+        "*.inc": "c"
     }
 }
