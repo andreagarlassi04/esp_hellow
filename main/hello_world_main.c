@@ -348,26 +348,41 @@ static const httpd_uri_t echo = {
 
 static esp_err_t ledRead_get_handler(httpd_req_t *req)
 {   
-    ESP_LOGI(TAG, " [STATO DEI LED RGB]");
-    if(s_ledR_state==false){
-        ESP_LOGI(TAG, "|     RED : OFF     |");
+    if(!s_ledR_state && !s_ledG_state && !s_ledB_state){
+        req->user_ctx="STATO LED RGB:     RED: OFF,   GREEN: OFF,   BLUE: OFF";
+        ESP_LOGI(TAG, "STATO LED RGB:     RED: OFF,   GREEN: OFF,   BLUE: OFF");
     }
-    else if(s_ledR_state==true){
-        ESP_LOGI(TAG, "|     RED : ON      |");
+    else if(s_ledR_state && !s_ledG_state && !s_ledB_state){
+        req->user_ctx="STATO LED RGB:     RED: ON,   GREEN: OFF,   BLUE: OFF";
+        ESP_LOGI(TAG, "STATO LED RGB:     RED: ON,   GREEN: OFF,   BLUE: OFF");
     }
-    if(s_ledG_state==false){
-        ESP_LOGI(TAG, "|    GREEN : OFF    |");
+    else if(!s_ledR_state && s_ledG_state && !s_ledB_state){
+        req->user_ctx="STATO LED RGB:     RED: OFF,   GREEN: ON,   BLUE: OFF";
+        ESP_LOGI(TAG, "STATO LED RGB:     RED: OFF,   GREEN: ON,   BLUE: OFF");
     }
-    else if(s_ledG_state==true){
-        ESP_LOGI(TAG, "|    GREEN : ON     |");
+    else if(!s_ledR_state && !s_ledG_state && s_ledB_state){
+        req->user_ctx="STATO LED RGB:     RED: OFF,   GREEN: OFF,   BLUE: ON";
+        ESP_LOGI(TAG, "STATO LED RGB:     RED: OFF,   GREEN: OFF,   BLUE: ON");
     }
-    if(s_ledB_state==false){
-        ESP_LOGI(TAG, "|    BLUE : OFF     |");
+    else if(s_ledR_state && s_ledG_state && s_ledB_state){
+        req->user_ctx="STATO LED RGB:     RED: ON,   GREEN: ON,   BLUE: ON";
+        ESP_LOGI(TAG, "STATO LED RGB:     RED: ON,   GREEN: ON,   BLUE: ON");
     }
-    else if(s_ledB_state==true){
-        ESP_LOGI(TAG, "|    BLUE : ON      |");
+    else if(s_ledR_state && s_ledG_state && !s_ledB_state){
+        req->user_ctx="STATO LED RGB:     RED: ON,   GREEN: ON,   BLUE: OFF";
+        ESP_LOGI(TAG, "STATO LED RGB:     RED: ON,   GREEN: ON,   BLUE: OFF");
     }
-    ESP_LOGI(TAG, "---------------------");
+    else if(s_ledR_state && !s_ledG_state && s_ledB_state){
+        req->user_ctx="STATO LED RGB:     RED: ON,   GREEN: OFF,   BLUE: ON";
+        ESP_LOGI(TAG, "STATO LED RGB:     RED: ON,   GREEN: OFF,   BLUE: ON");
+    }
+    else if(!s_ledR_state && s_ledG_state && s_ledB_state){
+        req->user_ctx="STATO LED RGB:     RED: OFF,   GREEN: ON,   BLUE: ON";
+        ESP_LOGI(TAG, "STATO LED RGB:     RED: OFF,   GREEN: ON,   BLUE: ON");
+    }
+    
+    const char* resp_str = (const char*) req->user_ctx;
+    httpd_resp_send(req, resp_str, HTTPD_RESP_USE_STRLEN);
     httpd_resp_send(req, NULL, 0);
     return ESP_OK;
 }
@@ -376,7 +391,7 @@ static const httpd_uri_t ledRead = {
     .uri      = "/ledRead",
     .method   = HTTP_GET,
     .handler  = ledRead_get_handler,
-    .user_ctx = NULL
+    .user_ctx = "STATO LED RGB:"
 };
 
 //----------------------------------POST-----------------------------------------------
@@ -388,12 +403,10 @@ static esp_err_t ledR_post_handler(httpd_req_t *req)
     configure_ledR();
     char * s = s_ledR_state ? "true " : "false";
     httpd_resp_send_chunk(req, s, 5);
-    if(s_ledR_state==true){
+    if(s_ledR_state)
         ESP_LOGI(TAG, "=========== LED ROSSO ACCESO ==========");
-    }
-    else if(s_ledR_state==false){
+    else
         ESP_LOGI(TAG, "=========== LED ROSSO SPENTO ==========");
-    }
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
@@ -412,12 +425,10 @@ static esp_err_t ledG_post_handler(httpd_req_t *req)
     configure_ledG();
     char * s = s_ledG_state ? "true " : "false";
     httpd_resp_send_chunk(req, s, 5);
-    if(s_ledG_state==true){
+    if(s_ledG_state)
         ESP_LOGI(TAG, "=========== LED VERDE ACCESO ==========");
-    }
-    else if(s_ledG_state==false){
+    else
         ESP_LOGI(TAG, "=========== LED VERDE SPENTO ==========");
-    }
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
@@ -436,12 +447,10 @@ static esp_err_t ledB_post_handler(httpd_req_t *req)
     configure_ledB();
     char * s = s_ledB_state ? "true " : "false";
     httpd_resp_send_chunk(req, s, 5);
-    if(s_ledB_state==true){
+    if(s_ledB_state)
         ESP_LOGI(TAG, "=========== LED BLU ACCESO ==========");
-    }
-    else if(s_ledB_state==false){
+    else
         ESP_LOGI(TAG, "=========== LED BLU SPENTO ==========");
-    }
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
