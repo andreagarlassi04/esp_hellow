@@ -386,6 +386,8 @@ static esp_err_t ledR_post_handler(httpd_req_t *req)
     s_ledR_state=!s_ledR_state;
     blink_ledR();
     configure_ledR();
+    char * s = s_ledR_state ? "true " : "false";
+    httpd_resp_send_chunk(req, s, 5);
     if(s_ledR_state==true){
         ESP_LOGI(TAG, "=========== LED ROSSO ACCESO ==========");
     }
@@ -396,8 +398,8 @@ static esp_err_t ledR_post_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-static const httpd_uri_t ledRToggle = {
-    .uri      = "/ledRToggle",
+static const httpd_uri_t ledR = {
+    .uri      = "/ledR",
     .method   = HTTP_POST,
     .handler  = ledR_post_handler,
     .user_ctx = NULL
@@ -408,6 +410,8 @@ static esp_err_t ledG_post_handler(httpd_req_t *req)
     s_ledG_state=!s_ledG_state;
     blink_ledG();
     configure_ledG();
+    char * s = s_ledG_state ? "true " : "false";
+    httpd_resp_send_chunk(req, s, 5);
     if(s_ledG_state==true){
         ESP_LOGI(TAG, "=========== LED VERDE ACCESO ==========");
     }
@@ -418,8 +422,8 @@ static esp_err_t ledG_post_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-static const httpd_uri_t ledGToggle = {
-    .uri      = "/ledGToggle",
+static const httpd_uri_t ledG = {
+    .uri      = "/ledG",
     .method   = HTTP_POST,
     .handler  = ledG_post_handler,
     .user_ctx = NULL
@@ -430,6 +434,8 @@ static esp_err_t ledB_post_handler(httpd_req_t *req)
     s_ledB_state=!s_ledB_state;
     blink_ledB();
     configure_ledB();
+    char * s = s_ledB_state ? "true " : "false";
+    httpd_resp_send_chunk(req, s, 5);
     if(s_ledB_state==true){
         ESP_LOGI(TAG, "=========== LED BLU ACCESO ==========");
     }
@@ -440,8 +446,8 @@ static esp_err_t ledB_post_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-static const httpd_uri_t ledBToggle = {
-    .uri      = "/ledBToggle",
+static const httpd_uri_t ledB = {
+    .uri      = "/ledB",
     .method   = HTTP_POST,
     .handler  = ledB_post_handler,
     .user_ctx = NULL
@@ -449,20 +455,9 @@ static const httpd_uri_t ledBToggle = {
 
 static esp_err_t text_post_handler(httpd_req_t *req)
 {
-    char testo[100];
-    int ret=0, remaining = req->content_len;
-
-    while (remaining > 0) {
-        if ((ret = httpd_req_recv(req, testo,  MIN(remaining, sizeof(testo)))) <= 0) {
-            if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
-                continue;
-            }
-            return ESP_FAIL;
-        }
-        httpd_resp_send_chunk(req, testo, ret);
-        remaining -= ret;
-        ESP_LOGI("TESTO RICEVUTO", "%.*s", ret, testo);
-    }
+    char testo[200];
+    httpd_resp_send_chunk(req, testo, httpd_req_recv(req, testo, sizeof(testo)));
+    ESP_LOGI("TESTO RICEVUTO", "%.*s", strlen(testo), testo);
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
@@ -529,9 +524,9 @@ static esp_err_t ctrl_put_handler(httpd_req_t *req)
         ESP_LOGI(TAG, "Registering /hello and /echo URIs");
         httpd_register_uri_handler(req->handle, &hello);
         httpd_register_uri_handler(req->handle, &echo);
-        httpd_register_uri_handler(req->handle, &ledRToggle);
-        httpd_register_uri_handler(req->handle, &ledGToggle);
-        httpd_register_uri_handler(req->handle, &ledBToggle);
+        httpd_register_uri_handler(req->handle, &ledR);
+        httpd_register_uri_handler(req->handle, &ledG);
+        httpd_register_uri_handler(req->handle, &ledB);
         httpd_register_uri_handler(req->handle, &text);
         httpd_register_uri_handler(req->handle, &ledRead);
         /* Unregister custom error handler */
@@ -564,9 +559,9 @@ static httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(server, &hello);
         httpd_register_uri_handler(server, &echo);
         httpd_register_uri_handler(server, &ctrl);
-        httpd_register_uri_handler(server, &ledRToggle);
-        httpd_register_uri_handler(server, &ledGToggle);
-        httpd_register_uri_handler(server, &ledBToggle);
+        httpd_register_uri_handler(server, &ledR);
+        httpd_register_uri_handler(server, &ledG);
+        httpd_register_uri_handler(server, &ledB);
         httpd_register_uri_handler(server, &text);
         httpd_register_uri_handler(server, &ledRead);
         #if CONFIG_EXAMPLE_BASIC_AUTH
