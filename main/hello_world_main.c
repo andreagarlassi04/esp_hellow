@@ -127,6 +127,14 @@ static void configure_ledG(void)
 
 #endif
 
+#define BLINK_GPIO26 CONFIG_BLINK_GPIO
+
+static void configure_button(void)
+{
+    gpio_reset_pin(26);
+    /* Set the GPIO as a push/pull output */
+    gpio_set_direction(26, GPIO_MODE_INPUT);
+}
 
 esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
@@ -219,7 +227,7 @@ static void http_led_state(void)
     esp_err_t err;
     const char* ledState="{\"red\":0,\"green\":0,\"blue\":0}";
 
-    s_ledR_state=!s_ledR_state;
+   /* s_ledR_state=!s_ledR_state;
     blink_ledR();
     configure_ledR();
     s_ledG_state=!s_ledG_state;
@@ -227,7 +235,7 @@ static void http_led_state(void)
     configure_ledG();
     s_ledB_state=!s_ledB_state;
     blink_ledB();
-    configure_ledB();
+    configure_ledB();*/
 
     if(!s_ledR_state && !s_ledG_state && !s_ledB_state){
         ledState="{\"red\":0,\"green\":0,\"blue\":0}";
@@ -271,6 +279,42 @@ static void http_led_state(void)
 
 #define ENOUGH 100
 
+static void http_button_state(void)
+{
+    char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
+    esp_http_client_config_t config = {
+        .host = "44.193.166.37",
+        .path = "/scm8TnPXBKUoHjznY8ft",
+        .query = "esp",
+        .event_handler = _http_event_handler,
+        .user_data = local_response_buffer,       
+        .disable_auto_redirect = true,
+    };
+
+    configure_button();
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    esp_err_t err;
+    char str[ENOUGH];
+    sprintf(str, "{\"pressed\": %d}", gpio_get_level(26));    
+    const char* buttonState=str;
+    
+    esp_http_client_set_url(client, "http://44.193.166.37/api/v1/scm8TnPXBKUoHjznY8ft/telemetry");
+    esp_http_client_set_method(client, HTTP_METHOD_POST);
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+    esp_http_client_set_post_field(client, buttonState, strlen(buttonState));
+    ESP_LOGI(TAG, "STATO BUTTON : %s", buttonState);
+    err = esp_http_client_perform(client);
+    if (err == ESP_OK) {
+        ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %lld",
+                esp_http_client_get_status_code(client),
+                (long long int) esp_http_client_get_content_length(client));
+    } else {
+        ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
+    }  
+    esp_http_client_cleanup(client);
+}
+
+
 static void http_parameter(void)
 {
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
@@ -307,13 +351,82 @@ static void http_parameter(void)
     esp_http_client_cleanup(client);
 }
 
+int i=0;
+
+static void http_button_change_led_state(void)
+{
+    char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
+    esp_http_client_config_t config = {
+        .host = "44.193.166.37",
+        .path = "/pwUmyjIHEIdvqIRMVkMr",
+        .query = "esp",
+        .event_handler = _http_event_handler,
+        .user_data = local_response_buffer,       
+        .disable_auto_redirect = true,
+    };
+
+    configure_button();
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    esp_err_t err;
+    
+    bool bState=gpio_get_level(26);
+    char str[ENOUGH];
+
+    do{
+        bState=gpio_get_level(26);
+    }while(bState==1);
+
+    bState=gpio_get_level(26);  
+
+    switch(i){
+        case 0:
+            s_ledG_state=!s_ledG_state;
+            blink_ledG();
+            configure_ledG();
+            i++;
+            break;
+        case 1:
+            s_ledR_state=!s_ledR_state;
+            blink_ledR();
+            configure_ledR();
+            i++;
+            break;
+        case 2:
+            s_ledB_state=!s_ledB_state;
+            blink_ledB();
+            configure_ledB();
+            i=0;
+            break;
+    };
+
+    sprintf(str, "{\"red\":%d,\"green\":%d,\"blue\":%d}", s_ledR_state, s_ledG_state, s_ledB_state);  
+    const char* ledState=str;
+
+    esp_http_client_set_url(client, "http://44.193.166.37/api/v1/pwUmyjIHEIdvqIRMVkMr/telemetry");
+    esp_http_client_set_method(client, HTTP_METHOD_POST);
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+    esp_http_client_set_post_field(client, ledState, strlen(ledState));
+    ESP_LOGI(TAG, "STATO LED : %s", ledState);
+    err = esp_http_client_perform(client);
+    if (err == ESP_OK) {
+        ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %lld",
+                esp_http_client_get_status_code(client),
+                (long long int) esp_http_client_get_content_length(client));
+    } else {
+        ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
+    }  
+     esp_http_client_cleanup(client);
+    
+}
 
 static void http_test_task(void *pvParameters)
 {
     while(1){
-        http_parameter();
-        http_led_state();
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
+       // http_button_state();
+        //http_parameter();
+       // http_led_state();
+        http_button_change_led_state();
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
     ESP_LOGI(TAG, "Finish http example");
     vTaskDelete(NULL);
@@ -330,6 +443,8 @@ void app_main(void)
     s_ledB_state=false;
     blink_ledB();
     configure_ledB();
+
+    configure_button();
    
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
