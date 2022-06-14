@@ -6,6 +6,7 @@
    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
    CONDITIONS OF ANY KIND, either express or implied.
 */
+#include <string.h>
 #include <stdio.h>
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
@@ -127,7 +128,6 @@ static void configure_ledG(void)
 #endif
 
 
-
 esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
     static char *output_buffer;  // Buffer to store response of http request from event handler
@@ -216,98 +216,48 @@ static void http_led_state(void)
     };
 
     esp_http_client_handle_t client = esp_http_client_init(&config);
+    esp_err_t err;
     const char* ledState="{\"red\":0,\"green\":0,\"blue\":0}";
-    while(1){
-        s_ledR_state=!s_ledR_state;
-        blink_ledR();
-        configure_ledR();
-        s_ledG_state=!s_ledG_state;
-        blink_ledG();
-        configure_ledG();
-        s_ledB_state=!s_ledB_state;
-        blink_ledB();
-        configure_ledB();
 
-        if(!s_ledR_state && !s_ledG_state && !s_ledB_state){
-            ledState="{\"red\":0,\"green\":0,\"blue\":0}";
-        }
-        else if(s_ledR_state && !s_ledG_state && !s_ledB_state){
-            ledState="{\"red\":1,\"green\":0,\"blue\":0}";
-        }
-        else if(!s_ledR_state && s_ledG_state && !s_ledB_state){
-            ledState="{\"red\":0,\"green\":1,\"blue\":0}";
-        }
-        else if(!s_ledR_state && !s_ledG_state && s_ledB_state){
-            ledState="{\"red\":0,\"green\":0,\"blue\":1}";
-        }
-        else if(s_ledR_state && s_ledG_state && s_ledB_state){
-            ledState="{\"red\":1,\"green\":1,\"blue\":1}";
-        }
-        else if(s_ledR_state && s_ledG_state && !s_ledB_state){
-            ledState="{\"red\":1,\"green\":1,\"blue\":0}";
-        }
-        else if(s_ledR_state && !s_ledG_state && s_ledB_state){
-            ledState="{\"red\":1,\"green\":0,\"blue\":1}";
-        }
-        else if(!s_ledR_state && s_ledG_state && s_ledB_state){
-            ledState="{\"red\":0,\"green\":1,\"blue\":1}";
-        }
-        esp_http_client_set_url(client, "http://44.193.166.37/api/v1/pwUmyjIHEIdvqIRMVkMr/telemetry");
-        esp_http_client_set_method(client, HTTP_METHOD_POST);
-        esp_http_client_set_header(client, "Content-Type", "application/json");
-        esp_http_client_set_post_field(client, ledState, strlen(ledState));
-        ESP_LOGI(TAG, "STATO LED: %s", ledState);
-        esp_err_t err = esp_http_client_perform(client);
-        if (err == ESP_OK) {
-            ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %lld",
-                    esp_http_client_get_status_code(client),
-                    (long long int) esp_http_client_get_content_length(client));
-        } else {
-            ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
-        }  
-        
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
+    s_ledR_state=!s_ledR_state;
+    blink_ledR();
+    configure_ledR();
+    s_ledG_state=!s_ledG_state;
+    blink_ledG();
+    configure_ledG();
+    s_ledB_state=!s_ledB_state;
+    blink_ledB();
+    configure_ledB();
+
+    if(!s_ledR_state && !s_ledG_state && !s_ledB_state){
+        ledState="{\"red\":0,\"green\":0,\"blue\":0}";
     }
-    esp_http_client_cleanup(client);
-}
-
-static void http_rest_with_url(void)
-{
-    char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
-    /**
-     * NOTE: All the configuration parameters for http_client must be spefied either in URL or as host and path parameters.
-     * If host and path parameters are not set, query parameter will be ignored. In such cases,
-     * query parameter should be specified in URL.
-     *
-     * If URL as well as host and path parameters are specified, values of host and path will be considered.
-     */
-    esp_http_client_config_t config = {
-        .host = "httpbin.org",
-        .path = "/get",
-        .query = "esp",
-        .event_handler = _http_event_handler,
-        .user_data = local_response_buffer,        // Pass address of local buffer to get response
-        .disable_auto_redirect = true,
-    };
-    esp_http_client_handle_t client = esp_http_client_init(&config);
-
-    // GET
-    esp_err_t err = esp_http_client_perform(client);
-    if (err == ESP_OK) {
-        ESP_LOGI(TAG, "HTTP GET Status = %d, content_length = %lld",
-                esp_http_client_get_status_code(client),
-                (long long int) esp_http_client_get_content_length(client));
-    } else {
-        ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(err));
+    else if(s_ledR_state && !s_ledG_state && !s_ledB_state){
+        ledState="{\"red\":1,\"green\":0,\"blue\":0}";
     }
-    ESP_LOG_BUFFER_HEX(TAG, local_response_buffer, strlen(local_response_buffer));
-
-    // POST
-    const char *post_data = "{\"field1\":\"value1\"}";
-    esp_http_client_set_url(client, "http://httpbin.org/post");
+    else if(!s_ledR_state && s_ledG_state && !s_ledB_state){
+        ledState="{\"red\":0,\"green\":1,\"blue\":0}";
+    }
+    else if(!s_ledR_state && !s_ledG_state && s_ledB_state){
+        ledState="{\"red\":0,\"green\":0,\"blue\":1}";
+    }
+    else if(s_ledR_state && s_ledG_state && s_ledB_state){
+        ledState="{\"red\":1,\"green\":1,\"blue\":1}";
+    }
+    else if(s_ledR_state && s_ledG_state && !s_ledB_state){
+        ledState="{\"red\":1,\"green\":1,\"blue\":0}";
+    }
+    else if(s_ledR_state && !s_ledG_state && s_ledB_state){
+        ledState="{\"red\":1,\"green\":0,\"blue\":1}";
+    }
+    else if(!s_ledR_state && s_ledG_state && s_ledB_state){
+        ledState="{\"red\":0,\"green\":1,\"blue\":1}";
+    }
+    esp_http_client_set_url(client, "http://44.193.166.37/api/v1/pwUmyjIHEIdvqIRMVkMr/telemetry");
     esp_http_client_set_method(client, HTTP_METHOD_POST);
     esp_http_client_set_header(client, "Content-Type", "application/json");
-    esp_http_client_set_post_field(client, post_data, strlen(post_data));
+    esp_http_client_set_post_field(client, ledState, strlen(ledState));
+    ESP_LOGI(TAG, "STATO LED: %s", ledState);
     err = esp_http_client_perform(client);
     if (err == ESP_OK) {
         ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %lld",
@@ -315,68 +265,56 @@ static void http_rest_with_url(void)
                 (long long int) esp_http_client_get_content_length(client));
     } else {
         ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
-    }
-
-    //PUT
-    esp_http_client_set_url(client, "http://httpbin.org/put");
-    esp_http_client_set_method(client, HTTP_METHOD_PUT);
-    err = esp_http_client_perform(client);
-    if (err == ESP_OK) {
-        ESP_LOGI(TAG, "HTTP PUT Status = %d, content_length = %lld",
-                esp_http_client_get_status_code(client),
-                (long long int)esp_http_client_get_content_length(client));
-    } else {
-        ESP_LOGE(TAG, "HTTP PUT request failed: %s", esp_err_to_name(err));
-    }
-
-    //PATCH
-    esp_http_client_set_url(client, "http://httpbin.org/patch");
-    esp_http_client_set_method(client, HTTP_METHOD_PATCH);
-    esp_http_client_set_post_field(client, NULL, 0);
-    err = esp_http_client_perform(client);
-    if (err == ESP_OK) {
-        ESP_LOGI(TAG, "HTTP PATCH Status = %d, content_length = %lld",
-                esp_http_client_get_status_code(client),
-                (long long int)esp_http_client_get_content_length(client));
-    } else {
-        ESP_LOGE(TAG, "HTTP PATCH request failed: %s", esp_err_to_name(err));
-    }
-
-    //DELETE
-    esp_http_client_set_url(client, "http://httpbin.org/delete");
-    esp_http_client_set_method(client, HTTP_METHOD_DELETE);
-    err = esp_http_client_perform(client);
-    if (err == ESP_OK) {
-        ESP_LOGI(TAG, "HTTP DELETE Status = %d, content_length = %lld",
-                esp_http_client_get_status_code(client),
-                (long long int)esp_http_client_get_content_length(client));
-    } else {
-        ESP_LOGE(TAG, "HTTP DELETE request failed: %s", esp_err_to_name(err));
-    }
-
-    //HEAD
-    esp_http_client_set_url(client, "http://httpbin.org/get");
-    esp_http_client_set_method(client, HTTP_METHOD_HEAD);
-    err = esp_http_client_perform(client);
-    if (err == ESP_OK) {
-        ESP_LOGI(TAG, "HTTP HEAD Status = %d, content_length = %lld",
-                esp_http_client_get_status_code(client),
-                (long long int)esp_http_client_get_content_length(client));
-    } else {
-        ESP_LOGE(TAG, "HTTP HEAD request failed: %s", esp_err_to_name(err));
-    }
-
+    }  
     esp_http_client_cleanup(client);
 }
 
+#define ENOUGH 100
+
+static void http_parameter(void)
+{
+    char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
+    esp_http_client_config_t config = {
+        .host = "44.193.166.37",
+        .path = "/RDFyHVYCXtdPJZEiXtEq",
+        .query = "esp",
+        .event_handler = _http_event_handler,
+        .user_data = local_response_buffer,       
+        .disable_auto_redirect = true,
+    };
+    time_t t;
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    esp_err_t err;
+    srand((unsigned) time(&t));
+    int par;
+    par=rand()%100;
+    char str[ENOUGH];
+    sprintf(str, "{\"parameter\": %d}", par);    
+    const char* parameter=str;
+    esp_http_client_set_url(client, "http://44.193.166.37/api/v1/RDFyHVYCXtdPJZEiXtEq/telemetry");
+    esp_http_client_set_method(client, HTTP_METHOD_POST);
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+    esp_http_client_set_post_field(client, parameter, strlen(parameter));
+    ESP_LOGI(TAG, "PARAMETER: %s", parameter);
+    err = esp_http_client_perform(client);
+    if (err == ESP_OK) {
+        ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %lld",
+                esp_http_client_get_status_code(client),
+                (long long int) esp_http_client_get_content_length(client));
+    } else {
+        ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
+    }  
+    esp_http_client_cleanup(client);
+}
+
+
 static void http_test_task(void *pvParameters)
 {
-    http_rest_with_url();
-     while(1){
+    while(1){
+        http_parameter();
         http_led_state();
-        vTaskDelay(5000);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
-
     ESP_LOGI(TAG, "Finish http example");
     vTaskDelete(NULL);
 }

@@ -5,5 +5,9 @@
         "target/esp32.cfg"
     ],
     "idf.flashType": "UART",
-    "idf.portWin": "COM4"
+    "idf.portWin": "COM4",
+    "files.associations": {
+        "string": "c",
+        "stdio.h": "c"
+    }
 }
