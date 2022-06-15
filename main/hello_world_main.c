@@ -372,8 +372,12 @@ static void http_button_change_led_state(void)
     bool bState=gpio_get_level(26);
     char str[ENOUGH];
 
-    do{
+    do{ 
         bState=gpio_get_level(26);
+        http_button_state();
+        http_parameter();
+        http_led_state();
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }while(bState==1);
 
     bState=gpio_get_level(26);  
@@ -422,10 +426,10 @@ static void http_button_change_led_state(void)
 static void http_test_task(void *pvParameters)
 {
     while(1){
-       // http_button_state();
-        //http_parameter();
-       // http_led_state();
         http_button_change_led_state();
+        http_button_state();
+        http_parameter();
+        http_led_state();
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
     ESP_LOGI(TAG, "Finish http example");
