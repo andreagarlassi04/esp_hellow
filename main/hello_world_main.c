@@ -9,7 +9,6 @@
 #include <string.h>
 #include <stdio.h>
 #include "sdkconfig.h"
-#include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
 #include "esp_spi_flash.h"
@@ -423,13 +422,56 @@ static void http_button_change_led_state(void)
     
 }
 
+static void main_task()
+{
+	// wait for connection
+	char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
+    esp_http_client_config_t config = {
+        .host = "maker.ifttt.com",
+        .path = "/XeMgZPP_2BuuVw4GQV1Pf",
+        .query = "esp",
+        .event_handler = _http_event_handler,
+        .user_data = local_response_buffer,       
+        .disable_auto_redirect = true,
+    };
+
+    configure_button();
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    esp_err_t err;
+    
+    bool bState=gpio_get_level(26);
+
+    do{ 
+        bState=gpio_get_level(26);
+    }while(bState==1);
+
+    bState=gpio_get_level(26);  
+    const char* content="{\"Value1\": \"10\"}";
+
+    esp_http_client_set_url(client, "http://maker.ifttt.com/trigger/hello/with/key/XeMgZPP_2BuuVw4GQV1Pf");
+    esp_http_client_set_method(client, HTTP_METHOD_POST);
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+
+    ESP_LOGI(TAG, "Content : %s", content);
+    err = esp_http_client_perform(client);
+    if (err == ESP_OK) {
+        ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %lld",
+                esp_http_client_get_status_code(client),
+                (long long int) esp_http_client_get_content_length(client));
+    } else {
+        ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
+    }  
+     esp_http_client_cleanup(client);
+}
+
 static void http_test_task(void *pvParameters)
 {
     while(1){
-        http_button_change_led_state();
-        http_button_state();
-        http_parameter();
-        http_led_state();
+        //http_button_change_led_state();
+        //http_button_state();
+        //http_parameter();
+        //http_led_state();
+        main_task();
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
     ESP_LOGI(TAG, "Finish http example");
